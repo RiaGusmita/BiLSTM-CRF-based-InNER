@@ -323,15 +323,12 @@ def main():
 
         test_examples, test_features, test_data = get_Dataset(args, processor, tokenizer, mode="test")
         
-
         logger.info("***** Running test *****")
         logger.info(f" Num examples = {len(test_examples)}")
         logger.info(f" Batch size = {args.eval_batch_size}")
 
         all_ori_tokens = [f.ori_tokens for f in test_features]
-        all_ori_labels = [e.label.split(" ") for e in test_examples]
-        #print("all_ori_tokens", len(all_ori_tokens))
-        #print("all_ori_labels", len(all_ori_labels))
+        all_ori_labels = [f.ori_labels for f in test_features]
         test_sampler = SequentialSampler(test_data)
         test_dataloader = DataLoader(test_data, sampler=test_sampler, batch_size=args.eval_batch_size)
         model.eval()
@@ -344,30 +341,37 @@ def main():
             input_mask = input_mask.to(device)
             segment_ids = segment_ids.to(device)
             label_ids = label_ids.to(device)
-
             with torch.no_grad():
                 logits = model.predict(input_ids, segment_ids, input_mask)
             # logits = torch.argmax(F.log_softmax(logits, dim=2), dim=2)
             # logits = logits.detach().cpu().numpy()
-
             for l in logits:
-
                 pred_label = []
                 for idx in l:
                     pred_label.append(id2label[idx])
                 pred_labels.append(pred_label)
 
         assert len(pred_labels) == len(all_ori_tokens) == len(all_ori_labels)
-        #print(len(pred_labels))
         with open(os.path.join(args.output_dir, "token_labels_.txt"), "w", encoding="utf-8") as f:
+            test_list = []
             for ori_tokens, ori_labels,prel in zip(all_ori_tokens, all_ori_labels, pred_labels):
                 for ot,ol,pl in zip(ori_tokens, ori_labels, prel):
                     if ot in ["[CLS]", "[SEP]"]:
                         continue
                     else:
                         f.write(f"{ot} {ol} {pl}\n")
+                        test_list.append(f"{ot} {ol} {pl}\n")
                 f.write("\n")
+                test_list.append("\n")
+        # eval the model 
+        counts = conlleval.evaluate(test_list)
+        conlleval.report(counts)
 
+        overall, by_type = conlleval.metrics(counts)
+        f1_score = overall.fscore
+        print("f1 score", f1_score)
+                
+        
 if __name__ == "__main__":
     main()
     pass

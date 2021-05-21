@@ -22,13 +22,14 @@ class InputExample(object):
 class InputFeatures(object):
     """A single set of features of data."""
 
-    def __init__(self, input_ids, input_mask, segment_ids, label_id, ori_tokens):
+    def __init__(self, input_ids, input_mask, segment_ids, label_id, ori_tokens, ori_labels):
 
         self.input_ids = input_ids
         self.input_mask = input_mask
         self.segment_ids = segment_ids
         self.label_id = label_id
         self.ori_tokens = ori_tokens
+        self.ori_labels = ori_labels
 
 
 class NerProcessor(object):
@@ -103,9 +104,7 @@ class NerProcessor(object):
 def convert_examples_to_features(args, examples, label_list, max_seq_length, tokenizer):
 
     label_map = {label : i for i, label in enumerate(label_list)}
-    #label_map['I'] = len(label_map)
-    print("label_map", label_map)
-
+    
     features = []
 
     for (ex_index, example) in tqdm(enumerate(examples), desc="convert examples"):
@@ -121,31 +120,15 @@ def convert_examples_to_features(args, examples, label_list, max_seq_length, tok
         input_ids = []
         for i, word in enumerate(textlist):
             # Prevent the wordPiece situation from appearing, but it doesn’t seem to be
-             
             token = tokenizer.tokenize(word)
-            #print("tokenn", token)
             ids = tokenizer.convert_tokens_to_ids(token)
             ids = np.average(ids)
             input_ids.append(ids)
             tokens.append(token)
             label_1 = labellist[i]
-            #print("labellll", label_1)
-            
             ori_tokens.append(word)
             labels.append(label_1)
-            # Single character will not appear / wordPiece
-            #for m in range(len(token)):
-            #    #print("m", m)
-            #    if m == 0:
-            #        labels.append(label_1)
-            #    else:
-            #        if label_1 == "O":
-            #            labels.append("O")
-            #        else:
-            #            labels.append(label_1)
-        #print("#####before trim######")
-        #print("token", tokens)
-        #print("ori", ori_tokens)
+            
         if len(tokens) >= max_seq_length - 1:
             tokens = tokens[0:(max_seq_length - 2)]  # The reason for -2 is because the sequence needs to add a sentence beginning and ending mark
             labels = labels[0:(max_seq_length - 2)]
@@ -153,7 +136,7 @@ def convert_examples_to_features(args, examples, label_list, max_seq_length, tok
             input_ids = input_ids[0:(max_seq_length - 2)]
 
         ori_tokens = ["[CLS]"] + ori_tokens + ["[SEP]"]
-        #print("#####after trim######")
+        labels = ["O"] + labels + ["O"]
         ntokens = []
         segment_ids = []
         label_ids = []
@@ -161,26 +144,17 @@ def convert_examples_to_features(args, examples, label_list, max_seq_length, tok
         input_ids.append(tokenizer.convert_tokens_to_ids("[CLS]"))
         segment_ids.append(0)
         label_ids.append(label_map["O"])
-        #print(tokens)
-        #print(labels)
         for i, token in enumerate(tokens):
             ntokens.append(token)
             segment_ids.append(0)
-            label_ids.append(label_map[labels[i]])
-
+            label_ids.append(label_map[labels[i+1]])
+            
         ntokens.append("[SEP]")
         input_ids.append(tokenizer.convert_tokens_to_ids("[SEP]"))
         segment_ids.append(0)
         label_ids.append(label_map["O"])
-        #input_ids = tokenizer.convert_tokens_to_ids(ntokens)   
-        
         input_mask = [1] * len(input_ids)
-        #print("len(ori_tokens)", len(ori_tokens))
-        #print("len(ntokens)", len(ntokens))
-        #print("ori_tokens", ori_tokens)
-        #print("ntokens", ntokens)
         assert len(ori_tokens) == len(ntokens), f"{len(ori_tokens)}, {len(ntokens)}, {ori_tokens}"
-        #print("len input_ids", len(input_ids))
         while len(input_ids) < max_seq_length:
             input_ids.append(0)
             input_mask.append(0)
@@ -188,7 +162,6 @@ def convert_examples_to_features(args, examples, label_list, max_seq_length, tok
             # we don't concerned about it!
             label_ids.append(0)
             ntokens.append("**NULL**")
-        #print(len(segment_ids), max_seq_length)    
         assert len(input_ids) == max_seq_length
         assert len(input_mask) == max_seq_length
         assert len(segment_ids) == max_seq_length
@@ -213,7 +186,9 @@ def convert_examples_to_features(args, examples, label_list, max_seq_length, tok
                               input_mask=input_mask,
                               segment_ids=segment_ids,
                               label_id=label_ids,
-                              ori_tokens=ori_tokens))
+                              ori_tokens=ori_tokens,
+                              ori_labels=labels 
+                              ))
 
     return features
 
