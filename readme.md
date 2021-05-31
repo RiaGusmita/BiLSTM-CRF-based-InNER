@@ -6,6 +6,7 @@ The model uses datasets provided by IndoNLU: https://github.com/indobenchmark/in
 
 ## Training Dataset Format
 Training dataset is in BIO format. These are some examples:
+```
 Produser	O
 David	B-PERSON
 Heyman	I-PERSON
@@ -36,7 +37,9 @@ tahu	O
 tentang	O
 Holocaust	O
 .	O
-
+```
 ## How to run
 Training and test processes can be performed at the same time using this syntax:
+```
 python ner.py --do_train True     --do_eval True     --do_test True     --max_seq_length 25  --train_batch_size 8     --eval_batch_size 8     --num_train_epochs 10     --do_lower_case     --logging_steps 200     --need_birnn True     --rnn_dim 256     --clean True
+```
