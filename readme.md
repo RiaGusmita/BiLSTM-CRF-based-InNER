@@ -5,7 +5,7 @@ This model is used to predict named entities in Indonesian text utilizing BiLSTM
 The model uses datasets provided by IndoNLU: https://github.com/indobenchmark/indonlu
 
 ## Training Dataset Format
-Training dataset is in BIO format. These are some examples:
+Training dataset is in BIO format where the first column refers to words and the second column represents named entity types. These are some examples:
 ```
 Produser	O
 David	B-PERSON
