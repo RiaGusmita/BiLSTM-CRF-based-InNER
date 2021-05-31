@@ -40,14 +40,14 @@ class NerProcessor(object):
             labels = []
             
             for line in f.readlines():   
-                contends = line.strip()
+                content = line.strip()
                 tokens = line.strip().split("\t")
 
                 if len(tokens) == 2:
                     words.append(tokens[0])
                     labels.append(tokens[1])
                 else:
-                    if len(contends) == 0 and len(words) > 0:
+                    if len(content) == 0 and len(words) > 0:
                         label = []
                         word = []
                         for l, w in zip(labels, words):
