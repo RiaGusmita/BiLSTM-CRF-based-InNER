@@ -1,5 +1,5 @@
 # Indonesian NER using BiLSTM+CRF+IndoBERT
-This model is used to predict named entities in Indonesian text utilizing BiLSTM and CRF architecture, and IndoBERT. The model is built by modifying an existing NER: https://github.com/PeijiYang/BERT-BiLSTM-CRF-NER-pytorch.
+This model is used to predict named entities in Indonesian text utilizing BiLSTM and CRF architecture, and [IndoBERT](https://huggingface.co/indobenchmark/indobert-base-p1). The model is built by modifying an existing NER: https://github.com/PeijiYang/BERT-BiLSTM-CRF-NER-pytorch.
   
 ## Datasets
 The model uses datasets provided by IndoNLU: https://github.com/indobenchmark/indonlu
